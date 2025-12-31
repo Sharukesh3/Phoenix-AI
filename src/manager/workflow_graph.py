@@ -22,7 +22,21 @@ class WorkflowGraph:
         pdf_path = user_input.get('resume_path')
         github_username = user_input.get('github_username')
         
-        profile_data = self.profile_agent.analyze_profile(pdf_path, github_username)
+        # Direct Injection (from DB)
+        if user_input.get('resume_text'):
+            # Construct a stub profile response
+            # Note: This bypasses fresh analysis. If we want fresh analysis on old text,
+            # we need to adapt ProfileIntelligenceAgent to accept text.
+            # For now, we trust the injected 'existing_skills'
+            skills = user_input.get('existing_skills', {})
+            profile_data = {
+                'resume_data': {'raw_text': user_input.get('resume_text')},
+                'skills': {'technical_skills': skills},
+                'github_data': {} # We could injection this too if needed
+            }
+        else:
+            profile_data = self.profile_agent.analyze_profile(pdf_path, github_username)
+            
         state['profile_data'] = profile_data
         state['messages'].append("Profile analysis complete.")
         state['current_step'] = 'profile_analysis_complete'
@@ -43,7 +57,11 @@ class WorkflowGraph:
                  user_input.get('rejected_job', {}), 
                  user_input.get('rejection_context', '')
              )
-             strategy = self.recovery_agent.generate_recovery_strategy(diagnosis, state['profile_data'])
+             strategy = self.recovery_agent.generate_recovery_strategy(
+                 diagnosis, 
+                 state['profile_data'],
+                 user_input.get('rejected_job', {})
+             )
              state['diagnosis'] = diagnosis
              state['recovery_strategy'] = strategy
              state['messages'].append("Recovery strategy generated.")

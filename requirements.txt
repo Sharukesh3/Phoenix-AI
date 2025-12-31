@@ -16,3 +16,6 @@ PyGithub
 PyPDF2
 beautifulsoup4
 tavily-python
+fastapi
+uvicorn
+python-multipart

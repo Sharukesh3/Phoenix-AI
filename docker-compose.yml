@@ -3,6 +3,8 @@ version: '3.8'
 services:
   app:
     build: .
+    ports: # Expose API
+      - "8000:8000"
     volumes:
       - .:/app
     environment:
@@ -13,6 +15,16 @@ services:
       - qdrant
       - db
       - ollama
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build: 
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - app
 
   ollama:
     image: ollama/ollama:latest
