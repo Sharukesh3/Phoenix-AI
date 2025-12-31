@@ -12,3 +12,7 @@ sqlalchemy
 sentence-transformers
 python-dotenv
 tiktoken
+PyGithub
+PyPDF2
+beautifulsoup4
+tavily-python

@@ -1,39 +1,51 @@
 import os
-from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage
-from src.agent.core import CareerAgent
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-# Load .env file
-load_dotenv()
+from src.manager.workflow_graph import WorkflowGraph
 
 def main():
-    print("Initializing Career Agent...")
+    print("Initializing Agentic Career Guide System...")
     try:
-        agent = CareerAgent()
+        workflow = WorkflowGraph()
     except Exception as e:
-        print(f"Error initializing agent: {e}")
+        print(f"Error initializing workflow: {e}")
         return
 
-    print("Agent Ready! Type 'exit' to quit.")
+    print("System Ready! Enter details below.")
+    print("Type 'exit' to quit.")
     
-    chat_history = []
-
     while True:
-        user_input = input("You: ")
-        if user_input.lower() in ["exit", "quit"]:
-            break
+        print("\n--- New Session ---")
+        resume_path = input("Resume Path (optional): ").strip()
+        if resume_path.lower() == 'exit': break
         
-        chat_history.append(HumanMessage(content=user_input))
+        github_user = input("GitHub Username (optional): ").strip()
         
-        inputs = {"messages": chat_history}
+        rejection_context = input("Did you face a rejection? describe it (optional): ").strip()
         
+        user_input = {
+            'resume_path': resume_path if resume_path else None,
+            'github_username': github_user if github_user else None,
+            'rejection_scenario': bool(rejection_context),
+            'rejection_context': rejection_context
+        }
+        
+        print("\nRunning workflow...")
         try:
-            result = agent.run(inputs)
-            response = result["messages"][-1]
-            print(f"Agent: {response.content}")
-            chat_history.append(response)
+            result = workflow.run(user_input)
+            print("\n--- Final Output ---")
+            print(result.get('final_output'))
+            print("\nMessages:")
+            for msg in result.get('messages', []):
+                print(f"- {msg}")
         except Exception as e:
-            print(f"Error executing agent: {e}")
+            print(f"Error executing workflow: {e}")
+            import traceback
+            traceback.print_exc()
 
 if __name__ == "__main__":
     main()
